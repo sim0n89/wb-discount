@@ -1,3 +1,4 @@
+# coding=UTF-8
 from requests_html import HTMLSession
 from fake_useragent import UserAgent
 from config import proxies_file
@@ -6,16 +7,18 @@ from config import HOST
 import get_html
 import json
 import math
+import gc
 
 ua = UserAgent()
 proxies = open(proxies_file).read().split('\n')
 
+
 def get_price_history(id):
-    url = 'https://wbx-content-v2.wbstatic.net/price-history/'+str(id)+'.json'
+    url = 'https://wbx-content-v2.wbstatic.net/price-history/' + str(id) + '.json'
     try:
         price_history = get_html.get_html(url)
     except:
-        price_history=''
+        price_history = ''
     return price_history
 
 
@@ -28,9 +31,9 @@ def get_stock(id):
         root = s['data']['products'][0]['root']
         sizes = s['data']['products'][0]['sizes']
 
-        stock= 0
+        stock = 0
         for size in sizes:
-            if len(size['stocks'])>0:
+            if len(size['stocks']) > 0:
                 for wh in size['stocks']:
                     stock = stock + wh['qty']
         st['stock'] = stock
@@ -50,7 +53,7 @@ def get_product_info(id):
         lenth_list = len(parse)
         price_list = []
         for n in range(lenth_list):
-            price_list.append(math.ceil(parse[n]['price']['RUB']/100))
+            price_list.append(math.ceil(parse[n]['price']['RUB'] / 100))
         try:
             maxmimum = max(price_list)
         except:
@@ -68,11 +71,13 @@ def get_product_info(id):
     session.headers = {'User-Agent': ua.random}
     session.proxies = {'http': 'http://' + choice(proxies)}
     r = session.get(url)
-
+    r.html.render(sleep=3)
+    r.close()
+    session.close()
     try:
         name = r.html.find('h1.same-part-kt__header', first=True).text.strip()
     except:
-        name=''
+        name = ''
 
     try:
         image = r.html.find('.photo-zoom__preview', first=True).attrs['src']
@@ -90,7 +95,7 @@ def get_product_info(id):
         old_price = int("".join(filter(str.isdecimal, old_price)))
     except:
         old_price = 0
-
+    smile = '🤑'
     if price < minimum:
         price_text = 'цена ниже диапозона'
         smile = '📉'
@@ -118,15 +123,16 @@ def get_product_info(id):
         "price_text": price_text,
     }
 
-
     try:
-        discound = math.ceil((price/old_price)*100 - 100)
+        discound = math.ceil((price / old_price) * 100 - 100)
         product["discount"] = discound
 
     except:
         product["discount"] = 0
-    print(product)
+    del name, price, old_price, url, image, smile, stock, minimum, maxmimum, price_text, discound, r, session, price_history
+    gc.collect()
     return product
+
 
 if __name__ == '__main__':
     get_product_info('78823134')

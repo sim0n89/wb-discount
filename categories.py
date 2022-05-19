@@ -1,6 +1,7 @@
 import requests
 import json
 from config import except_men_items
+import gc
 
 def get_categories(url):
     r = requests.get(url)
@@ -16,4 +17,6 @@ def get_category_links():
         if menu_item['id'] in except_men_items:
             for child in menu_item['childs']:
                 links.append(child['pageUrl'])
+    del json_menu, arr_menu
+    gc.collect()
     return links

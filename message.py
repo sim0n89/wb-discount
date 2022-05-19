@@ -2,6 +2,7 @@ from config import TOKEN, channel_id
 import telebot
 from telebot import types
 import traceback
+import gc
 
 bot = telebot.TeleBot(TOKEN)
 
@@ -13,19 +14,21 @@ def send_message(message):
         traceback.print_exc()
 
 
-
 def send_product_message(product):
     # img = open(product['image'], 'rb')
     # bot.send_photo(channel_id,product['image'] ,caption="TEST")
     product_message = make_product_message(product);
-    bot.send_photo(channel_id,product['image'], parse_mode="html", caption=product_message)
+    bot.send_photo(channel_id, product['image'], parse_mode="html", caption=product_message)
+    del product_message
+    gc.collect()
+
 
 def make_product_message(product):
-    if product['old_price']!=0:
+    if product['old_price'] != 0:
         text_old_price = f'<del>{str(product["old_price"])}₽ </del>'
     else:
-        text_old_price=''
-    if product['discount']!=0:
+        text_old_price = ''
+    if product['discount'] != 0:
         text_discound = '🔥Скидка:' + str(product['discount']) + '%'
     else:
         text_discound = ''
@@ -39,5 +42,6 @@ def make_product_message(product):
 Предыдущая цена: {product['last_price']}₽
 🤔Остаток: {str(product['stock'])}шт
 {d_text}
+
 {product['url']}'''
     return text

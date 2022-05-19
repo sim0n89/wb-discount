@@ -3,6 +3,7 @@ import mysql.connector
 from config import host, USER, passwd, database
 from datetime import date
 import traceback
+import gc
 
 def create_connection(host_name, user_name, user_password, db_name):
     connection = None
@@ -11,7 +12,8 @@ def create_connection(host_name, user_name, user_password, db_name):
             host=host_name,
             user=user_name,
             passwd=user_password,
-            database=db_name
+            database=db_name,
+            unix_socket='/var/run/mysqld/mysqld.sock'
         )
         # print("Connection to MySQL DB successful")
     except Error as e:
@@ -26,6 +28,8 @@ def check_product(id):
     have = cursor.fetchall()
     cursor.close()
     conn.close()
+    del conn, cursor, sql
+    gc.collect()
     if have == []:
         return False
     else:
@@ -50,6 +54,8 @@ def new_product(id, price):
         traceback.print_exc()
     cursor.close()
     conn.close()
+    del conn, cursor, sql, maxId, val, price, id
+    gc.collect()
 
 
 def add_new_price(prId, price):
@@ -61,6 +67,8 @@ def add_new_price(prId, price):
     conn.commit()
     cursor.close()
     conn.close()
+    del conn, cursor, sql, val, prId, price
+    gc.collect()
 
 
 def get_prices(prId):
@@ -71,6 +79,8 @@ def get_prices(prId):
     prices = cursor.fetchall()
     cursor.close()
     conn.close()
+    del conn, cursor, prId, sql
+    gc.collect()
     return prices
 
 
@@ -83,6 +93,8 @@ def check_root(id):
     have = cursor.fetchone()
     cursor.close()
     conn.close()
+    del conn, cursor, id, sql
+    gc.collect()
     if have == None:
         return True
     else:
@@ -96,6 +108,8 @@ def add_root(id):
     conn.commit()
     cursor.close()
     conn.close()
+    del conn, cursor, id, sql
+    gc.collect()
 
 def clear_root():
     conn = create_connection(host, USER, passwd, database)
@@ -105,3 +119,5 @@ def clear_root():
     conn.commit()
     cursor.close()
     conn.close()
+    del conn, cursor, sql
+    gc.collect()
